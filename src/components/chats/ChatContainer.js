@@ -42,7 +42,7 @@ export default class ChatContainer extends Component {
 		const { chats } = this.state
 
 		const newChats = reset ? [chat] : [...chats, chat] //if you want to reset the chats to current chat, if not, add/append new chats to current chats
-		this.setState({chats:newChats, activeChat:reset ? chat : this.state.activeChat}) //
+		this.setState({chats:newChats, activeChat:reset ? chat : this.state.activeChat}) //if we are reseting, set it to that chat, if not keep the chat the way it is.
 
 		const messageEvent = `${MESSAGE_RECIEVED}-${chat.id}` //saying where message was recieved
 		const typingEvent = `${TYPING}-${chat.id}` //saying where typing was recieved
@@ -59,14 +59,14 @@ export default class ChatContainer extends Component {
 	*/
 	addMessageToChat = (chatId)=>{
 		return message => {
-			const { chats } = this.state
-			let newChats = chats.map((chat)=>{
+			const { chats } = this.state //looks through the chat
+			let newChats = chats.map((chat)=>{ //loops through the chats to check the id if it matches the first id passed in
 				if(chat.id === chatId)
-					chat.messages.push(message)
+					chat.messages.push(message) //returns that chat to add to the new chats
 				return chat
 			})
 
-			this.setState({chats:newChats})
+			this.setState({chats:newChats}) //sets the state for the chats with the newChats
 		}
 	}
 
