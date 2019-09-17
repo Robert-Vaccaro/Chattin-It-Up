@@ -1,24 +1,77 @@
 import React, { Component } from 'react';
-import SideBar from './SideBar'
-import { COMMUNITY_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED, TYPING } from '../../Events'
+import SideBar from '../sidebar/SideBar'
+import { COMMUNITY_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED, 
+				TYPING, PRIVATE_MESSAGE, USER_CONNECTED, USER_DISCONNECTED,
+				NEW_CHAT_USER } from '../../Events'
 import ChatHeading from './ChatHeading'
 import Messages from '../messages/Messages'
 import MessageInput from '../messages/MessageInput'
-//22:59
+import { values, difference, differenceBy } from 'lodash'
 
 export default class ChatContainer extends Component {
 	constructor(props) {
 	  super(props);	
 	
 	  this.state = {
-	  	chats:[],
+		  chats:[],
+		  users:[],
 	  	activeChat:null
-	  };
+	  }
 	}
 
 	componentDidMount() {
 		const { socket } = this.props
-		socket.emit(COMMUNITY_CHAT, this.resetChat) //automattically drops people into community when they log it
+		this.initSocket(socket)
+	}
+	
+	componentWillUnmount() {
+		const { socket } = this.props
+		socket.off(PRIVATE_MESSAGE)
+		socket.off(USER_CONNECTED)
+		socket.off(USER_DISCONNECTED)
+		socket.off(NEW_CHAT_USER)
+	}
+	
+	initSocket(socket){
+		socket.emit(COMMUNITY_CHAT, this.resetChat)
+		socket.on(PRIVATE_MESSAGE, this.addChat)
+		socket.on('connect', ()=>{
+			socket.emit(COMMUNITY_CHAT, this.resetChat)
+		})
+		socket.on(USER_CONNECTED, (users)=>{
+			this.setState({ users: values(users) })
+		})
+		socket.on(USER_DISCONNECTED, (users)=>{
+			const removedUsers = differenceBy( this.state.users, values(users), 'id')
+			this.removeUsersFromChat(removedUsers)
+			this.setState({ users: values(users) })			
+		})
+		socket.on(NEW_CHAT_USER, this.addUserToChat)
+	}
+
+	sendOpenPrivateMessage = (reciever) => {
+		const { socket, user } = this.props
+		const { activeChat } = this.state
+		socket.emit(PRIVATE_MESSAGE, {reciever, sender:user.name, activeChat})
+
+	}
+	addUserToChat = ({ chatId, newUser }) => {
+		const { chats } = this.state
+		const newChats = chats.map( chat => {
+			if(chat.id === chatId){
+				return Object.assign({}, chat, { users: [ ...chat.users, newUser ] })
+			}
+			return chat
+		})
+		this.setState({ chats:newChats })
+	}
+	removeUsersFromChat = removedUsers => {
+		const { chats } = this.state
+		const newChats = chats.map( chat => {
+			let newUsers = difference( chat.users, removedUsers.map( u => u.name ) )
+				return Object.assign({}, chat, { users: newUsers })
+		})
+		this.setState({ chats: newChats })
 	}
 
 	/*
@@ -26,7 +79,7 @@ export default class ChatContainer extends Component {
 	* 	@param chat {Chat}
 	*/
 	resetChat = (chat)=>{
-		return this.addChat(chat, true) 
+		return this.addChat(chat, true)
 	}
 
 	/*
@@ -37,15 +90,15 @@ export default class ChatContainer extends Component {
 	*	@param chat {Chat} the chat to be added.
 	*	@param reset {boolean} if true will set the chat as the only chat.
 	*/
-	addChat = (chat, reset)=>{
+	addChat = (chat, reset = false)=>{
 		const { socket } = this.props
 		const { chats } = this.state
 
-		const newChats = reset ? [chat] : [...chats, chat] //if you want to reset the chats to current chat, if not, add/append new chats to current chats
-		this.setState({chats:newChats, activeChat:reset ? chat : this.state.activeChat}) //if we are reseting, set it to that chat, if not keep the chat the way it is.
+		const newChats = reset ? [chat] : [...chats, chat]
+		this.setState({chats:newChats, activeChat:reset ? chat : this.state.activeChat})
 
-		const messageEvent = `${MESSAGE_RECIEVED}-${chat.id}` //saying where message was recieved
-		const typingEvent = `${TYPING}-${chat.id}` //saying where typing was recieved
+		const messageEvent = `${MESSAGE_RECIEVED}-${chat.id}`
+		const typingEvent = `${TYPING}-${chat.id}`
 
 		socket.on(typingEvent, this.updateTypingInChat(chat.id))
 		socket.on(messageEvent, this.addMessageToChat(chat.id))
@@ -59,14 +112,14 @@ export default class ChatContainer extends Component {
 	*/
 	addMessageToChat = (chatId)=>{
 		return message => {
-			const { chats } = this.state //looks through the chat
-			let newChats = chats.map((chat)=>{ //loops through the chats to check the id if it matches the first id passed in
+			const { chats } = this.state
+			let newChats = chats.map((chat)=>{
 				if(chat.id === chatId)
-					chat.messages.push(message) //returns that chat to add to the new chats
+					chat.messages.push(message)
 				return chat
 			})
 
-			this.setState({chats:newChats}) //sets the state for the chats with the newChats
+			this.setState({chats:newChats})
 		}
 	}
 
@@ -100,9 +153,9 @@ export default class ChatContainer extends Component {
 	*	@param chatId {number}  The id of the chat to be added to.
 	*	@param message {string} The message to be added to the chat.
 	*/
-	sendMessage = (chatId, message)=>{ //the chat id we are sending the message to.
-		const { socket } = this.props //
-		socket.emit(MESSAGE_SENT, {chatId, message} )//send the object with the properties of chatid and message that were passed in
+	sendMessage = (chatId, message)=>{
+		const { socket } = this.props
+		socket.emit(MESSAGE_SENT, {chatId, message} )
 	}
 
 	/*
@@ -110,9 +163,9 @@ export default class ChatContainer extends Component {
 	*	chatId {number} the id of the chat being typed in.
 	*	typing {boolean} If the user is typing still or not.
 	*/
-	sendTyping = (chatId, isTyping)=>{ 
+	sendTyping = (chatId, isTyping)=>{
 		const { socket } = this.props
-		socket.emit(TYPING, {chatId, isTyping}) //send the chatId that we are typing to and the isTyping
+		socket.emit(TYPING, {chatId, isTyping})
 	}
 
 	setActiveChat = (activeChat)=>{
@@ -120,35 +173,37 @@ export default class ChatContainer extends Component {
 	}
 	render() {
 		const { user, logout } = this.props
-		const { chats, activeChat } = this.state
+		const { chats, activeChat, users } = this.state
 		return (
 			<div className="container">
 				<SideBar
 					logout={logout}
 					chats={chats}
 					user={user}
+					users={users}
 					activeChat={activeChat}
 					setActiveChat={this.setActiveChat}
+					onSendPrivateMessage={this.sendOpenPrivateMessage}
 					/>
 				<div className="chat-room-container">
 					{
-						activeChat !== null ? ( //if the chat isn't null, return below
+						activeChat !== null ? (
 
 							<div className="chat-room">
 								<ChatHeading name={activeChat.name} />
 								<Messages 
-									messages={activeChat.messages} //displays all messgae inside activeChat
-									user={user} //the user that we are currently
-									typingUsers={activeChat.typingUsers} 
+									messages={activeChat.messages}
+									user={user}
+									typingUsers={activeChat.typingUsers}
 									/>
 								<MessageInput 
-									sendMessage={ //this function executes taking in the parameters of activeChat.id and the message
+									sendMessage={
 										(message)=>{
 											this.sendMessage(activeChat.id, message)
 										}
 									}
 									sendTyping={
-										(isTyping)=>{ //a boolean
+										(isTyping)=>{
 											this.sendTyping(activeChat.id, isTyping)
 										}
 									}

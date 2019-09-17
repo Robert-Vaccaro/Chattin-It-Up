@@ -4,7 +4,7 @@ import { USER_CONNECTED, LOGOUT } from '../Events'
 import LoginForm from './LoginForm'
 import ChatContainer from './chats/ChatContainer'
 
-const socketUrl = "http://192.168.1.10:3231"
+const socketUrl = "http://100.83.98.201:3231"
 //73.231.32.90 windows
 //192.168.1.10 mac
 export default class Layout extends Component {
@@ -57,7 +57,6 @@ export default class Layout extends Component {
 
 
 	render() {
-		const { title } = this.props
 		const { socket, user } = this.state
 		return (
 			<div className="container">

@@ -41,7 +41,6 @@ export default class MessageInput extends Component {
 	*	Start an interval that checks if the user is typing.
 	*/
 	startCheckingTyping = ()=>{
-		console.log("Typing");
 		this.typingInterval = setInterval(()=>{
 			if((Date.now() - this.lastUpdateTime) > 300){
 				this.setState({isTyping:false})
@@ -55,7 +54,6 @@ export default class MessageInput extends Component {
 	*	Start the interval from checking if the user is typing.
 	*/
 	stopCheckingTyping = ()=>{
-		console.log("Stop Typing");
 		if(this.typingInterval){
 			clearInterval(this.typingInterval)
 			this.props.sendTyping(false)
@@ -78,7 +76,7 @@ export default class MessageInput extends Component {
 						className = "form-control"
 						value = { message }
 						autoComplete = {'off'}
-						placeholder = "Enter a message here!"
+						placeholder = "Type something interesting"
 						onKeyUp = { e => { e.keyCode !== 13 && this.sendTyping() } }
 						onChange = {
 							({target})=>{
