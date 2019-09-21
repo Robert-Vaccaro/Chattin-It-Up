@@ -3,16 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "express": "^4.17.1",
     "lodash": "^4.17.15",
+    "node": "^12.10.0",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-icons": "^3.7.0",
     "react-scripts": "3.1.1",
+    "sass": "^1.22.12",
+    "scss": "^0.2.4",
     "socket.io": "^2.2.0",
     "uuid": "^3.3.3"
   },
   "scripts": {
-    "start": "concurrently \"npm run react\" \"npm run server\"",
+    "start": "node src/server/index.js",
+    "dev": "concurrently \"npm run react\" \"npm run server\"",
     "react": "react-scripts start",
     "server": "nodemon src/server/index.js",
     "styles": "node-sass --output-style compressed --include-path scss src/styles/index.scss src/index.css",

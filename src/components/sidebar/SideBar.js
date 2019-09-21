@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { FaChevronDown } from 'react-icons/fa'
-import { MdMenu } from 'react-icons/md'
+import { FaUserPlus } from 'react-icons/fa'
+import { IoMdChatboxes } from 'react-icons/io'
+import { MdChat } from 'react-icons/md'
 import { MdSearch } from 'react-icons/md'
 import { MdEject } from 'react-icons/md'
 import SideBarOption from './SideBarOption'
@@ -41,13 +42,13 @@ export default class SideBar extends Component{
 		return (
 			<div id="side-bar">
 					<div className="heading">
-						<div className="app-name">Our Cool Chat <FaChevronDown /></div>
+						<div className="app-name">Chattin It Up </div>
 						<div className="menu">
-							<MdMenu />
+							<MdChat size={32} />
 						</div>
 					</div>
 					<form onSubmit={this.handleSubmit} className="search">
-						<i className="search-icon"><MdSearch /></i>
+						<i className="search-icon"><MdSearch size={28} /></i>
 						<input 
 							placeholder="Search" 
 							type="text"
@@ -60,11 +61,14 @@ export default class SideBar extends Component{
 							onClick = { ()=>{ this.setActiveSideBar(SideBar.type.CHATS) } }
 							className={`side-bar-select__option ${ activeSideBar === SideBar.type.CHATS ? 'active':''}`}>
 							<span>Chats</span>
+							<IoMdChatboxes size={28} />
+							
 						</div>
 						<div 
 							onClick = { ()=>{ this.setActiveSideBar(SideBar.type.USERS) } }
 							className={`side-bar-select__option ${ activeSideBar === SideBar.type.USERS ? 'active':''}`}>
 							<span>Users</span>
+							<FaUserPlus size={28} />
 						</div>
 					</div>
 					<div 

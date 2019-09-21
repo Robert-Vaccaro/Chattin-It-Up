@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import io from 'socket.io-client'
-import { USER_CONNECTED, LOGOUT } from '../Events'
+import { USER_CONNECTED, LOGOUT, VERIFY_USER } from '../Events'
 import LoginForm from './LoginForm'
 import ChatContainer from './chats/ChatContainer'
 
-const socketUrl = "http://100.83.98.201:3231"
+const socketUrl = "http://192.168.1.10:3231"
 //73.231.32.90 windows
 //192.168.1.10 mac
 export default class Layout extends Component {
@@ -29,11 +29,27 @@ export default class Layout extends Component {
 		const socket = io(socketUrl)
 
 		socket.on('connect', ()=>{
-			console.log("Connected");
+			if(this.state.user){
+				this.reconnect(socket)
+			}else{
+				console.log("Connected");
+			}
+			
 		})
 		
 		this.setState({socket})
 	}
+
+	reconnect = (socket) => {
+		socket.emit(VERIFY_USER, this.state.user.name, ({ isUser, user }) => {
+			if(isUser){
+				this.setState({user:null})
+			}else{
+				this.setState(user)
+			}
+		})
+	}
+
 
 	/*
 	* 	Sets the user property in state 
