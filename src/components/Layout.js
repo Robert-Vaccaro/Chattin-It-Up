@@ -4,7 +4,7 @@ import { USER_CONNECTED, LOGOUT, VERIFY_USER } from '../Events'
 import LoginForm from './LoginForm'
 import ChatContainer from './chats/ChatContainer'
 
-const socketUrl = "http://192.168.1.10:3231"
+const socketUrl = "/"
 //73.231.32.90 windows
 //192.168.1.10 mac
 export default class Layout extends Component {
